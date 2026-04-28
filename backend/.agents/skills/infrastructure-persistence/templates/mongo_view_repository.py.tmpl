@@ -1,0 +1,61 @@
+"""Read-side view repository. Lives in `<entity>_views/infrastructure/persistence/` (singular form).
+
+Joins across collections are EXPLICITLY allowed here via $lookup / aggregation.
+This adapter never reconstructs aggregates — it returns infrastructure-agnostic DTOs.
+"""
+from dataclasses import dataclass
+
+from modules.shared.infrastructure.persistence.mongo.mongo_client_factory import MongoClientFactory
+from modules.shared.infrastructure.persistence.mongo.mongo_config import MongoConfig
+from modules.shared.infrastructure.persistence.mongo.mongo_repository import MongoRepository
+from modules.<ENTITY>_views.domain.<ENTITY>_view_repository import (
+    <ENTITY_PASCAL>ViewDTO,
+    <ENTITY_PASCAL>ViewRepository,
+)
+
+
+class Mongo<ENTITY_PASCAL>ViewRepository(<ENTITY_PASCAL>ViewRepository, MongoRepository):
+    def __init__(self, client_factory: MongoClientFactory, config: MongoConfig) -> None:
+        MongoRepository.__init__(self, client_factory, config)
+
+    def _module_name(self) -> str:
+        # Singular entity name + _views (e.g. "user_views").
+        return "<ENTITY>_views"
+
+    def _collection_name(self) -> str:
+        # Read from the command-side collection (plural, e.g. "users"); joins go through $lookup.
+        return "<MODULE_PLURAL>"
+
+    def search(
+        self,
+        *,
+        # filters declared by the port
+        page: int,
+        page_size: int,
+    ) -> list[<ENTITY_PASCAL>ViewDTO]:
+        pipeline: list[dict] = [
+            # {"$match": {...}},          # apply filters here
+            {
+                "$lookup": {
+                    "from": "<RELATED_COLLECTION>",
+                    "localField": "<FOREIGN_KEY>",
+                    "foreignField": "_id",
+                    "as": "<JOINED_FIELD>",
+                },
+            },
+            {"$unwind": {"path": "$<JOINED_FIELD>", "preserveNullAndEmptyArrays": True}},
+            {"$skip": max(page - 1, 0) * page_size},
+            {"$limit": page_size},
+        ]
+        return [self._to_dto(doc) for doc in self._collection().aggregate(pipeline)]
+
+    def find_by_id(self, id: str) -> <ENTITY_PASCAL>ViewDTO | None:
+        doc = self._collection().find_one({"_id": id})
+        return self._to_dto(doc) if doc else None
+
+    @staticmethod
+    def _to_dto(doc: dict) -> <ENTITY_PASCAL>ViewDTO:
+        return <ENTITY_PASCAL>ViewDTO(
+            id=doc["_id"],
+            # ... project the fields the application service needs
+        )

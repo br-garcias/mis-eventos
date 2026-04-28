@@ -1,0 +1,19 @@
+"""Template: Repository port (abstract interface)."""
+from abc import ABC, abstractmethod
+from modules.shared.domain.value_object import IdValueObject
+from .{{snake}} import {{EntityName}}
+
+
+class {{EntityName}}Repository(ABC):
+    @abstractmethod
+    def save(self, {{snake}}: {{EntityName}}) -> None: ...
+
+    @abstractmethod
+    def find_by_id(self, id: IdValueObject) -> {{EntityName}} | None: ...
+
+    @abstractmethod
+    def search_all(self) -> list[{{EntityName}}]: ...
+
+    # Add domain-specific query methods when needed, e.g.:
+    # @abstractmethod
+    # def find_by_email(self, email: str) -> {{EntityName}} | None: ...

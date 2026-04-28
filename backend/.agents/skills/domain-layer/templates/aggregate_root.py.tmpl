@@ -1,0 +1,54 @@
+"""Template: AggregateRoot with grouped validation and Value Objects."""
+from dataclasses import dataclass
+from modules.shared.domain.aggregate_root import AggregateRoot
+from modules.shared.domain.domain_validation_error import DomainValidationError
+from modules.shared.domain.value_object import (
+    BoolValueObject,
+    IdValueObject,
+    InvalidArgumentError,
+)
+from .{{snake}}_name import {{EntityName}}Name
+
+
+@dataclass
+class {{EntityName}}(AggregateRoot):
+    id: IdValueObject
+    name: {{EntityName}}Name
+    is_active: BoolValueObject
+
+    @classmethod
+    def create(cls, *, id: str, name: str, is_active: bool = True) -> "{{EntityName}}":
+        fields = {
+            "id": (IdValueObject, id),
+            "name": ({{EntityName}}Name, name),
+            "is_active": (BoolValueObject, is_active),
+        }
+        values, errors = cls._build_value_objects(fields)
+        if errors:
+            raise DomainValidationError(errors)
+        return cls(**values)
+
+    def update(self, *, name: str | None = None) -> None:
+        candidates = {}
+        if name is not None:
+            candidates["name"] = ({{EntityName}}Name, name)
+
+        values, errors = self._build_value_objects(candidates)
+        if errors:
+            raise DomainValidationError(errors)
+        for field, vo in values.items():
+            setattr(self, field, vo)
+
+    def toggle(self) -> None:
+        self.is_active = BoolValueObject(not self.is_active.value)
+
+    @staticmethod
+    def _build_value_objects(fields: dict) -> tuple[dict, dict[str, list[str]]]:
+        values: dict = {}
+        errors: dict[str, list[str]] = {}
+        for field, (vo_cls, raw) in fields.items():
+            try:
+                values[field] = vo_cls(raw)
+            except InvalidArgumentError as e:
+                errors[field] = [str(e)]
+        return values, errors

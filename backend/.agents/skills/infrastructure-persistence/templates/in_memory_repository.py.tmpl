@@ -1,0 +1,18 @@
+"""Template: InMemory repository implementing the domain port."""
+from modules.shared.domain.value_object import IdValueObject
+from modules.{{module}}.domain.{{snake}} import {{EntityName}}
+from modules.{{module}}.domain.{{snake}}_repository import {{EntityName}}Repository
+
+
+class InMemory{{EntityName}}Repository({{EntityName}}Repository):
+    def __init__(self) -> None:
+        self._by_id: dict[str, {{EntityName}}] = {}
+
+    def save(self, {{snake}}: {{EntityName}}) -> None:
+        self._by_id[{{snake}}.id.value] = {{snake}}
+
+    def find_by_id(self, id: IdValueObject) -> {{EntityName}} | None:
+        return self._by_id.get(id.value)
+
+    def search_all(self) -> list[{{EntityName}}]:
+        return list(self._by_id.values())

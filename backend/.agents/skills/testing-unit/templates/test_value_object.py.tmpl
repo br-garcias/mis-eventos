@@ -1,0 +1,13 @@
+"""Template: Unit tests for a Value Object."""
+import pytest
+from modules.{{module}}.domain.{{snake}}_email import {{EntityName}}Email
+from modules.shared.domain.value_object import InvalidArgumentError
+
+
+def test_valid_email_accepted():
+    assert {{EntityName}}Email("alice@example.com").value == "alice@example.com"
+
+
+def test_invalid_email_raises():
+    with pytest.raises(InvalidArgumentError):
+        {{EntityName}}Email("not-an-email")

@@ -1,0 +1,28 @@
+"""Template: Unit tests for an Application Service (e.g. Creator).
+
+Mock every dependency declared in the Service's __init__ (repositories,
+hashers, other domain services). Use MagicMock(spec=...) to guarantee
+interface compatibility.
+"""
+import pytest
+from unittest.mock import MagicMock
+from modules.{{module}}.application.create.{{snake}}_creator import {{EntityName}}Creator
+from modules.{{module}}.domain.{{snake}}_repository import {{EntityName}}Repository
+
+UID = "550e8400-e29b-41d4-a716-446655440000"
+
+
+def test_creates_and_saves():
+    repo = MagicMock(spec={{EntityName}}Repository)
+    # Add mocks for any extra deps (e.g. RoleRepository, PasswordHasher) here.
+    creator = {{EntityName}}Creator(repo)
+    creator.run(id=UID, name="Alice")
+    repo.save.assert_called_once()
+
+
+def test_raises_if_already_exists():
+    repo = MagicMock(spec={{EntityName}}Repository)
+    repo.find_by_email.return_value = MagicMock()  # exists
+    creator = {{EntityName}}Creator(repo)
+    with pytest.raises(Exception):
+        creator.run(id=UID, name="Alice")

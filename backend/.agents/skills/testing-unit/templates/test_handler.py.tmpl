@@ -1,0 +1,20 @@
+"""Template: Unit tests for a Command/Query Handler (delegation only).
+
+The Handler receives an already-built Service via constructor injection.
+We mock the Service and assert the Handler calls it with the expected args.
+"""
+from unittest.mock import MagicMock
+from modules.{{module}}.application.create.create_{{snake}}_command import Create{{EntityName}}Command
+from modules.{{module}}.application.create.create_{{snake}}_command_handler import Create{{EntityName}}CommandHandler
+from modules.{{module}}.application.create.{{snake}}_creator import {{EntityName}}Creator
+
+UID = "550e8400-e29b-41d4-a716-446655440000"
+
+
+def test_handler_delegates_to_creator():
+    creator = MagicMock(spec={{EntityName}}Creator)
+    handler = Create{{EntityName}}CommandHandler(creator)
+
+    handler.handle(Create{{EntityName}}Command(id=UID, name="Alice"))
+
+    creator.run.assert_called_once_with(id=UID, name="Alice")

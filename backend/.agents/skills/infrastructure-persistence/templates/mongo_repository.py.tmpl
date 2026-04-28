@@ -1,0 +1,52 @@
+"""Template: MongoDB repository extending domain port and shared MongoRepository.
+
+Lives in: src/modules/<module>/infrastructure/persistence/mongo_{{snake}}_repository.py
+"""
+from modules.shared.infrastructure.persistence.mongo.mongo_client_factory import MongoClientFactory
+from modules.shared.infrastructure.persistence.mongo.mongo_config import MongoConfig
+from modules.shared.infrastructure.persistence.mongo.mongo_repository import MongoRepository
+from modules.shared.domain.value_object import IdValueObject
+from modules.{{module}}.domain.{{snake}} import {{EntityName}}
+from modules.{{module}}.domain.{{snake}}_repository import {{EntityName}}Repository
+
+
+class Mongo{{EntityName}}Repository({{EntityName}}Repository, MongoRepository):
+    def __init__(self, client_factory: MongoClientFactory, config: MongoConfig) -> None:
+        MongoRepository.__init__(self, client_factory, config)
+
+    def _module_name(self) -> str:
+        return "{{module}}"
+
+    def _collection_name(self) -> str:
+        return "{{snake}}s"
+
+    def save(self, {{snake}}: {{EntityName}}) -> None:
+        self._persist({{snake}}.id.value, Mongo{{EntityName}}Mapper.to_document({{snake}}))
+
+    def find_by_id(self, id: IdValueObject) -> {{EntityName}} | None:
+        document = self._collection().find_one({"_id": id.value})
+        return Mongo{{EntityName}}Mapper.from_document(document) if document else None
+
+    def search_all(self) -> list[{{EntityName}}]:
+        documents = self._collection().find()
+        return [Mongo{{EntityName}}Mapper.from_document(doc) for doc in documents]
+
+
+class Mongo{{EntityName}}Mapper:
+    @staticmethod
+    def to_document({{snake}}: {{EntityName}}) -> dict:
+        # Map every field that must persist. Use .value for Value Objects.
+        return {
+            "_id": {{snake}}.id.value,
+            "name": {{snake}}.name.value,
+            "is_active": {{snake}}.is_active.value,
+        }
+
+    @staticmethod
+    def from_document(document: dict) -> {{EntityName}}:
+        # Always use the domain factory (create()) so validation runs.
+        return {{EntityName}}.create(
+            id=document["_id"],
+            name=document["name"],
+            is_active=document["is_active"],
+        )

@@ -1,0 +1,15 @@
+from modules.shared.domain.query_handler import QueryHandler
+from modules.user_views.domain.user_view_dto import UserSummaryView
+from .search_entities_query import SearchEntitiesQuery
+from .entity_searcher import EntitySearcher
+
+
+class SearchEntitiesQueryHandler(QueryHandler):
+    def __init__(self, searcher: EntitySearcher) -> None:
+        self._searcher = searcher
+
+    def subscribed_to(self):
+        return SearchEntitiesQuery
+
+    def handle(self, query: SearchEntitiesQuery) -> list[UserSummaryView]:
+        return self._searcher.run(email=query.email, role_id=query.role_id)

@@ -1,0 +1,11 @@
+from dataclasses import dataclass
+from modules.shared.domain.command import Command
+
+
+@dataclass(frozen=True)
+class CreateEntityCommand(Command):
+    id: str
+    name: str
+    email: str
+    # Add fields as needed (primitives only)
+    # ID is always generated in the API layer, not in the domain

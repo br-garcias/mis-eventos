@@ -1,0 +1,19 @@
+from modules.shared.domain.command_handler import CommandHandler
+from .create_entity_command import CreateEntityCommand
+from .entity_creator import EntityCreator
+
+
+class CreateEntityCommandHandler(CommandHandler):
+    def __init__(self, creator: EntityCreator) -> None:
+        self._creator = creator
+
+    def subscribed_to(self):
+        return CreateEntityCommand
+
+    def handle(self, command: CreateEntityCommand) -> None:
+        # Commands return None - ID is generated in API
+        self._creator.run(
+            id=command.id,
+            name=command.name,
+            email=command.email,
+        )
